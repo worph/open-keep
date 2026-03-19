@@ -3,23 +3,22 @@ services:
     build:
       context: .
       target: deps
+    user: "1000:1000"
     hostname: openkeep
     ports:
       - "9847:9847"
     volumes:
       - .:/app
       - node_modules:/app/node_modules
-      - openkeep-data:/app/data
+      - ./data:/app/data
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=file:./data/openkeep.db
+      - DATABASE_URL=file:/app/data/openkeep.db
       - PORT=9847
     command: >
       sh -c "pnpm prisma migrate dev --skip-generate &&
-             pnpm prisma generate &&
              pnpm dev -p 9847"
     restart: unless-stopped
 
 volumes:
   node_modules:
-  openkeep-data:
