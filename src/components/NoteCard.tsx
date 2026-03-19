@@ -13,8 +13,10 @@ import {
   RotateCcw,
   Check,
   Square,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNoteStore } from '@/stores/noteStore'
 import { useUIStore } from '@/stores/uiStore'
 import { ColorPicker } from './ColorPicker'
@@ -32,6 +34,16 @@ export function NoteCard({ note }: NoteCardProps) {
   const { setEditingNoteId, darkMode } = useUIStore()
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showLabelPicker, setShowLabelPicker] = useState(false)
+  const [completedCollapsed, setCompletedCollapsed] = useState(true)
+
+  const uncheckedItems = useMemo(
+    () => note.checklistItems.filter((item) => !item.isChecked),
+    [note.checklistItems]
+  )
+  const checkedItems = useMemo(
+    () => note.checklistItems.filter((item) => item.isChecked),
+    [note.checklistItems]
+  )
 
   const {
     attributes,
@@ -75,38 +87,68 @@ export function NoteCard({ note }: NoteCardProps) {
         )}
 
         {note.type === 'checklist' ? (
-          <ul className="space-y-1">
-            {note.checklistItems.slice(0, 8).map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center gap-2 text-sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleToggleChecklistItem(item.id)
-                }}
-              >
-                {item.isChecked ? (
-                  <Check className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <Square className="w-4 h-4 text-gray-400" />
-                )}
-                <span
-                  className={`${
-                    item.isChecked
-                      ? 'line-through text-gray-400 dark:text-gray-500'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }`}
+          <div className="space-y-1">
+            <ul className="space-y-1">
+              {uncheckedItems.slice(0, 8).map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center gap-2 text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleChecklistItem(item.id)
+                  }}
                 >
-                  {item.text}
-                </span>
-              </li>
-            ))}
-            {note.checklistItems.length > 8 && (
-              <li className="text-xs text-gray-500">
-                + {note.checklistItems.length - 8} more items
-              </li>
+                  <Square className="w-4 h-4 text-gray-400 shrink-0" />
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {item.text}
+                  </span>
+                </li>
+              ))}
+              {uncheckedItems.length > 8 && (
+                <li className="text-xs text-gray-500">
+                  + {uncheckedItems.length - 8} more items
+                </li>
+              )}
+            </ul>
+
+            {checkedItems.length > 0 && (
+              <>
+                <button
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 py-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setCompletedCollapsed(!completedCollapsed)
+                  }}
+                >
+                  {completedCollapsed ? (
+                    <ChevronRight className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                  {checkedItems.length} completed {checkedItems.length === 1 ? 'item' : 'items'}
+                </button>
+                {!completedCollapsed && (
+                  <ul className="space-y-1">
+                    {checkedItems.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-2 text-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleChecklistItem(item.id)
+                        }}
+                      >
+                        <Check className="w-4 h-4 text-gray-500 shrink-0" />
+                        <span className="line-through text-gray-400 dark:text-gray-500">
+                          {item.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
             )}
-          </ul>
+          </div>
         ) : (
           note.content && (
             <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-6">

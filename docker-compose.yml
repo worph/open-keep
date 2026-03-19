@@ -1,16 +1,25 @@
-version: '3.8'
-
 services:
   openkeep:
-    build: .
+    build:
+      context: .
+      target: deps
+    hostname: openkeep
     ports:
-      - "80:80"
+      - "9847:9847"
     volumes:
+      - .:/app
+      - node_modules:/app/node_modules
       - openkeep-data:/app/data
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DATABASE_URL=file:./data/openkeep.db
+      - PORT=9847
+    command: >
+      sh -c "pnpm prisma migrate dev --skip-generate &&
+             pnpm prisma generate &&
+             pnpm dev -p 9847"
     restart: unless-stopped
 
 volumes:
+  node_modules:
   openkeep-data:

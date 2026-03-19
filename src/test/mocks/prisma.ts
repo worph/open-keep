@@ -19,6 +19,7 @@ export const mockPrisma = {
   checklistItem: {
     findMany: vi.fn(),
     create: vi.fn(),
+    createMany: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
     deleteMany: vi.fn(),
@@ -26,6 +27,7 @@ export const mockPrisma = {
   noteLabel: {
     findMany: vi.fn(),
     create: vi.fn(),
+    createMany: vi.fn(),
     delete: vi.fn(),
     deleteMany: vi.fn(),
   },

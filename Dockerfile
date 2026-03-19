@@ -32,7 +32,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=80
+ENV PORT=9847
 ENV DATABASE_URL="file:./data/openkeep.db"
 
 RUN groupadd --system --gid 1001 nodejs
@@ -49,6 +49,6 @@ RUN chown -R nextjs:nodejs /app/prisma
 
 USER nextjs
 
-EXPOSE 80
+EXPOSE 9847
 
 CMD ["sh", "-c", "node ./node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js migrate deploy && node server.js"]
