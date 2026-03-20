@@ -44,6 +44,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
+COPY mcp-announce.js mcp-announce-start.js ./
 
 RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
 
@@ -67,7 +68,7 @@ fi
 chown nextjs:nodejs /app/data
 chown -R nextjs:nodejs /app/prisma
 
-exec gosu nextjs sh -c "node ./node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js migrate deploy && node server.js"
+exec gosu nextjs sh -c "node ./node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js migrate deploy && node mcp-announce-start.js & node server.js"
 ENTRY
 RUN chmod 755 /app/entrypoint.sh
 

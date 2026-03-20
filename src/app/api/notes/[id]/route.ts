@@ -3,11 +3,12 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const note = await prisma.note.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         checklistItems: {
           orderBy: { position: 'asc' },
@@ -31,9 +32,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const {
       title,
@@ -65,7 +67,7 @@ export async function PATCH(
 
     if (checklistItems !== undefined) {
       await prisma.checklistItem.deleteMany({
-        where: { noteId: params.id },
+        where: { noteId: id },
       })
 
       if (checklistItems.length > 0) {
@@ -75,7 +77,7 @@ export async function PATCH(
             text: item.text,
             isChecked: item.isChecked || false,
             position: index,
-            noteId: params.id,
+            noteId: id,
           })),
         })
       }
@@ -83,13 +85,13 @@ export async function PATCH(
 
     if (labelIds !== undefined) {
       await prisma.noteLabel.deleteMany({
-        where: { noteId: params.id },
+        where: { noteId: id },
       })
 
       if (labelIds.length > 0) {
         await prisma.noteLabel.createMany({
           data: labelIds.map((labelId: string) => ({
-            noteId: params.id,
+            noteId: id,
             labelId,
           })),
         })
@@ -97,7 +99,7 @@ export async function PATCH(
     }
 
     const note = await prisma.note.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         checklistItems: {
@@ -118,11 +120,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await prisma.note.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

@@ -28,6 +28,7 @@ rm -rf .next && docker compose restart
 ```bash
 pnpm test                 # Run all tests once (vitest run)
 pnpm test:watch           # Watch mode
+pnpm test:ui              # Browser-based test UI
 pnpm test:coverage        # Coverage report (v8 provider)
 pnpm lint                 # ESLint
 ```
@@ -90,7 +91,7 @@ SQLite with four models: **Note**, **ChecklistItem**, **Label**, **NoteLabel** (
 
 ## Testing
 
-Tests use Vitest with jsdom environment. API and store tests mock Prisma via `src/test/mocks/prisma.ts`. Component tests use React Testing Library. Next.js navigation hooks are mocked in the setup file.
+Tests use Vitest with jsdom environment and `globals: true` (no need to import `describe`/`it`/`expect`). API and store tests mock Prisma via `src/test/mocks/prisma.ts`. Component tests use React Testing Library. Next.js navigation hooks are mocked in the setup file.
 
 Path alias `@/*` maps to `src/*` in both tsconfig and vitest config.
 

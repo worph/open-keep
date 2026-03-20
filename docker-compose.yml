@@ -15,10 +15,20 @@ services:
       - NODE_ENV=development
       - DATABASE_URL=file:/app/data/openkeep.db
       - PORT=9847
+      - DISCOVERY_PORT=9099
+      - MCP_PORT=9847
     command: >
-      sh -c "pnpm prisma migrate dev --skip-generate &&
+      sh -c "node mcp-announce-start.js &
+             pnpm prisma migrate dev --skip-generate &&
              pnpm dev -p 9847"
     restart: unless-stopped
+    networks:
+      - default
+      - mcp-net
 
 volumes:
   node_modules:
+
+networks:
+  mcp-net:
+    external: true
