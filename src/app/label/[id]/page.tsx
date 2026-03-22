@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { use, useEffect } from 'react'
 import { Tag } from 'lucide-react'
 import { useNoteStore } from '@/stores/noteStore'
 import { useLabelStore } from '@/stores/labelStore'
@@ -8,18 +8,19 @@ import { NoteInput } from '@/components/NoteInput'
 import { NoteGrid } from '@/components/NoteGrid'
 
 interface LabelPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function LabelPage({ params }: LabelPageProps) {
+  const { id } = use(params)
   const { notes, loading, fetchNotes } = useNoteStore()
   const { labels } = useLabelStore()
 
-  const label = labels.find((l) => l.id === params.id)
+  const label = labels.find((l) => l.id === id)
 
   useEffect(() => {
-    fetchNotes({ labelId: params.id })
-  }, [fetchNotes, params.id])
+    fetchNotes({ labelId: id })
+  }, [fetchNotes, id])
 
   return (
     <div>
