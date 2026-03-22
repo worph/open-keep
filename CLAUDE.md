@@ -11,6 +11,10 @@ OpenKeep is a self-hosted note-taking app inspired by Google Keep, built with Ne
 Development always uses the Docker dev stack — never run `pnpm dev` directly on the host.
 
 ```bash
+# First time only (once per machine):
+docker network create mcp-net     # Create shared MCP discovery network
+
+# Development:
 docker compose up -d              # Start dev container (http://openkeep:9847)
 docker compose logs -f            # Follow logs
 docker compose restart            # Restart after config changes

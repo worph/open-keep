@@ -38,10 +38,9 @@ next-env.d.ts
 *.db
 *.db-journal
 /.pnpm-store
-.env
-
 # Data directory (Docker database location)
-/data/
+/data/*
+!/data/.gitkeep
 
 # IDE/Editor settings
 .idea/
@@ -51,3 +50,4 @@ next-env.d.ts
 
 # Claude Code settings
 .claude/
+.env

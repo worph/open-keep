@@ -3,7 +3,6 @@ services:
     build:
       context: .
       target: deps
-    user: "1000:1000"
     hostname: openkeep
     ports:
       - "9847:9847"
