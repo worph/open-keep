@@ -24,6 +24,38 @@ pnpm dev
 
 The dev server runs at http://openkeep:9847.
 
+## Production Deployment
+
+Build the production image:
+
+```bash
+docker build -t openkeep .
+```
+
+Example `docker-compose.prod.yml`:
+
+```yaml
+services:
+  openkeep:
+    image: openkeep
+    user: "1000:1000"
+    ports:
+      - "9847:9847"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+```
+
+The `user:` directive runs the container as the specified UID:GID. Ensure the
+host data directory is writable by that user:
+
+```bash
+mkdir -p ./data && chown 1000:1000 ./data
+```
+
+If you omit `user:`, the container runs as root, which also works but is less
+secure.
+
 ## MCP Integration
 
 OpenKeep exposes an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) endpoint at `/api/mcp`, allowing AI agents to manage notes and labels via JSON-RPC 2.0.
