@@ -1,14 +1,16 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState } from 'react'
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -16,18 +18,42 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from '@dnd-kit/sortable'
+import { Masonry } from 'masonic'
 import { useNoteStore } from '@/stores/noteStore'
 import { useUIStore } from '@/stores/uiStore'
-import { NoteCard } from './NoteCard'
+import { NoteCard, NoteCardContent } from './NoteCard'
 import type { Note } from '@/types'
 
 interface NoteGridProps {
   notes: Note[]
 }
 
+function MasonryGrid({ notes }: { notes: Note[] }) {
+  return (
+    <Masonry
+      items={notes}
+      columnWidth={240}
+      columnGutter={16}
+      overscanBy={2}
+      render={({ data }: { data: Note }) => <NoteCard note={data} />}
+    />
+  )
+}
+
+function ListGrid({ notes }: { notes: Note[] }) {
+  return (
+    <div className="masonry-grid list-view">
+      {notes.map((note) => (
+        <NoteCard key={note.id} note={note} />
+      ))}
+    </div>
+  )
+}
+
 export function NoteGrid({ notes }: NoteGridProps) {
   const { gridView } = useUIStore()
   const { reorderNotes } = useNoteStore()
+  const [activeId, setActiveId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -43,7 +69,16 @@ export function NoteGrid({ notes }: NoteGridProps) {
   const pinnedNotes = notes.filter((note) => note.isPinned)
   const unpinnedNotes = notes.filter((note) => !note.isPinned)
 
+  const activeNote = activeId
+    ? notes.find((n) => n.id === activeId) ?? null
+    : null
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
   const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveId(null)
     const { active, over } = event
 
     if (over && active.id !== over.id) {
@@ -67,10 +102,13 @@ export function NoteGrid({ notes }: NoteGridProps) {
     )
   }
 
+  const GridComponent = gridView ? MasonryGrid : ListGrid
+
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       {pinnedNotes.length > 0 && (
@@ -82,10 +120,8 @@ export function NoteGrid({ notes }: NoteGridProps) {
             items={pinnedNotes.map((n) => n.id)}
             strategy={rectSortingStrategy}
           >
-            <div className={`masonry-grid mb-8 ${gridView ? '' : 'list-view'}`}>
-              {pinnedNotes.map((note) => (
-                <NoteCard key={note.id} note={note} />
-              ))}
+            <div className="mb-8">
+              <GridComponent notes={pinnedNotes} />
             </div>
           </SortableContext>
           {unpinnedNotes.length > 0 && (
@@ -100,12 +136,16 @@ export function NoteGrid({ notes }: NoteGridProps) {
         items={unpinnedNotes.map((n) => n.id)}
         strategy={rectSortingStrategy}
       >
-        <div className={`masonry-grid ${gridView ? '' : 'list-view'}`}>
-          {unpinnedNotes.map((note) => (
-            <NoteCard key={note.id} note={note} />
-          ))}
-        </div>
+        <GridComponent notes={unpinnedNotes} />
       </SortableContext>
+
+      <DragOverlay>
+        {activeNote ? (
+          <div style={{ width: 240 }}>
+            <NoteCardContent note={activeNote} />
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   )
 }

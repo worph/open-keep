@@ -5,6 +5,7 @@ import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
 import { NoteEditor } from '@/components/NoteEditor'
 import { LabelManager } from '@/components/LabelManager'
+import { ImportModal } from '@/components/ImportModal'
 import { useUIStore } from '@/stores/uiStore'
 import { useLabelStore } from '@/stores/labelStore'
 
@@ -39,6 +40,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       </div>
       <NoteEditor />
       <LabelManager />
+      <ImportModal />
     </>
   )
 }

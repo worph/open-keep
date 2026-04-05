@@ -9,6 +9,7 @@ import {
   Trash2,
   Tag,
   Edit,
+  Upload,
   Cpu,
   ChevronDown,
   ChevronRight,
@@ -20,7 +21,7 @@ import { useLabelStore } from '@/stores/labelStore'
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { sidebarOpen, setLabelManagerOpen } = useUIStore()
+  const { sidebarOpen, setLabelManagerOpen, setImportModalOpen } = useUIStore()
   const { labels } = useLabelStore()
   const [mcpExpanded, setMcpExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -67,6 +68,14 @@ export function Sidebar() {
             {sidebarOpen && <span className="ml-5">{item.label}</span>}
           </Link>
         ))}
+
+        <button
+          onClick={() => setImportModalOpen(true)}
+          className="flex items-center w-full h-12 px-6 mx-2 rounded-r-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+        >
+          <Upload className="w-5 h-5 flex-shrink-0" />
+          {sidebarOpen && <span className="ml-5">Import</span>}
+        </button>
 
         <div className="border-t border-gray-200 dark:border-gray-700 my-2 mx-4" />
 

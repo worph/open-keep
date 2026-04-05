@@ -1,7 +1,6 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import {
   Pin,
   PinOff,
@@ -16,7 +15,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, ReactNode } from 'react'
 import { useNoteStore } from '@/stores/noteStore'
 import { useUIStore } from '@/stores/uiStore'
 import { ColorPicker } from './ColorPicker'
@@ -24,11 +23,37 @@ import { LabelPicker } from './LabelPicker'
 import { getNoteColor } from '@/lib/utils'
 import type { Note } from '@/types'
 
-interface NoteCardProps {
-  note: Note
+const URL_REGEX = /(https?:\/\/[^\s<]+)/
+
+function linkify(text: string): ReactNode {
+  const parts = text.split(URL_REGEX)
+  if (parts.length === 1) return text
+  // split with capture group puts matches at odd indices
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  )
 }
 
-export function NoteCard({ note }: NoteCardProps) {
+interface NoteCardContentProps {
+  note: Note
+  style?: React.CSSProperties
+  className?: string
+}
+
+export function NoteCardContent({ note, style, className }: NoteCardContentProps) {
   const { updateNote, archiveNote, unarchiveNote, trashNote, restoreNote, togglePin, deleteNote } =
     useNoteStore()
   const { setEditingNoteId, darkMode } = useUIStore()
@@ -45,22 +70,6 @@ export function NoteCard({ note }: NoteCardProps) {
     [note.checklistItems]
   )
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: note.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    backgroundColor: getNoteColor(note.color, darkMode),
-  }
-
   const handleToggleChecklistItem = async (itemId: string) => {
     const updatedItems = note.checklistItems.map((item) =>
       item.id === itemId ? { ...item, isChecked: !item.isChecked } : item
@@ -70,14 +79,18 @@ export function NoteCard({ note }: NoteCardProps) {
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      className="note-card rounded-lg border border-gray-200 dark:border-gray-600 group cursor-pointer"
-      {...attributes}
-      {...listeners}
+      style={{
+        backgroundColor: getNoteColor(note.color, darkMode),
+        ...style,
+      }}
+      className={`note-card rounded-lg border group cursor-pointer overflow-hidden ${
+        note.color === 'default'
+          ? 'border-gray-200 dark:border-gray-600'
+          : 'border-transparent'
+      } ${className ?? ''}`}
     >
       <div
-        className="p-3"
+        className="p-3 overflow-hidden"
         onClick={() => !note.isTrashed && setEditingNoteId(note.id)}
       >
         {note.title && (
@@ -92,15 +105,15 @@ export function NoteCard({ note }: NoteCardProps) {
               {uncheckedItems.slice(0, 8).map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center gap-2 text-sm"
+                  className="flex items-center gap-2 text-sm min-w-0"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleToggleChecklistItem(item.id)
                   }}
                 >
                   <Square className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">
-                    {item.text}
+                  <span className="text-gray-700 dark:text-gray-300 break-words min-w-0">
+                    {linkify(item.text)}
                   </span>
                 </li>
               ))}
@@ -132,15 +145,15 @@ export function NoteCard({ note }: NoteCardProps) {
                     {checkedItems.map((item) => (
                       <li
                         key={item.id}
-                        className="flex items-center gap-2 text-sm"
+                        className="flex items-center gap-2 text-sm min-w-0"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleToggleChecklistItem(item.id)
                         }}
                       >
                         <Check className="w-4 h-4 text-gray-500 shrink-0" />
-                        <span className="line-through text-gray-400 dark:text-gray-500">
-                          {item.text}
+                        <span className="line-through text-gray-400 dark:text-gray-500 break-words min-w-0">
+                          {linkify(item.text)}
                         </span>
                       </li>
                     ))}
@@ -151,8 +164,8 @@ export function NoteCard({ note }: NoteCardProps) {
           </div>
         ) : (
           note.content && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-6">
-              {note.content}
+            <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-6 break-words">
+              {linkify(note.content)}
             </p>
           )
         )}
@@ -273,6 +286,31 @@ export function NoteCard({ note }: NoteCardProps) {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+interface NoteCardProps {
+  note: Note
+}
+
+export function NoteCard({ note }: NoteCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    isDragging,
+  } = useSortable({ id: note.id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className="w-full overflow-hidden"
+      style={{ opacity: isDragging ? 0.3 : 1 }}
+      {...attributes}
+      {...listeners}
+    >
+      <NoteCardContent note={note} />
     </div>
   )
 }

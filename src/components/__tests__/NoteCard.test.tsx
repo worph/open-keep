@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { NoteCard } from '../NoteCard'
+import { NoteCard, NoteCardContent } from '../NoteCard'
 import type { Note } from '@/types'
 
 // Mock the stores
@@ -30,18 +30,8 @@ vi.mock('@dnd-kit/sortable', () => ({
     attributes: {},
     listeners: {},
     setNodeRef: vi.fn(),
-    transform: null,
-    transition: null,
     isDragging: false,
   }),
-}))
-
-vi.mock('@dnd-kit/utilities', () => ({
-  CSS: {
-    Transform: {
-      toString: () => null,
-    },
-  },
 }))
 
 const mockTogglePin = vi.fn()
@@ -123,5 +113,14 @@ describe('NoteCard', () => {
     const pinnedNote = { ...baseNote, isPinned: true }
     rerender(<NoteCard note={pinnedNote} />)
     expect(screen.getByTitle('Unpin')).toBeInTheDocument()
+  })
+})
+
+describe('NoteCardContent', () => {
+  it('renders without dnd-kit dependency', () => {
+    render(<NoteCardContent note={baseNote} />)
+
+    expect(screen.getByText('Test Title')).toBeInTheDocument()
+    expect(screen.getByText('Test content')).toBeInTheDocument()
   })
 })
